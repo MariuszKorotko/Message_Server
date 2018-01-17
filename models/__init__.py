@@ -27,7 +27,7 @@ class User(object):
         self.__hashed_password = password_hash(password, salt)
 
     def save_to_db(self, cursor):
-        # saving new instance using prepared statements
+        # saves new user or update
         if self.__id == -1:
             query = """INSERT INTO Users(username, email, hashed_password)
                        VALUES('{}', '{}', '{}')""".format(self.username,
@@ -37,8 +37,16 @@ class User(object):
             self.__id = cursor.lastrowid
             print("Successfully saved!")
             return True
-
-        return False
+        else:
+            query = """UPDATE User SET username='{}', emial='{}',
+                       hashed_password='{}',
+                       WHERE id='{}'""".format(self.username,
+                                               self.email,
+                                               self.hashed_password,
+                                               self.id)
+            cursor.execute(query)
+            print("Successfully updated!")
+            return True
 
     @staticmethod
     def load_user_by_id(cursor, id):
@@ -59,7 +67,7 @@ class User(object):
     @staticmethod
     def load_user_by_email(cursor, email):
         query = """SELECT id, username, email, hashed_password
-                       FROM Users WHERE email='{}'""".format(email)
+                   FROM Users WHERE email='{}'""".format(email)
         row = cursor.execute(query).fetchone()
         if row is not None:
             loaded_user = User()
@@ -88,19 +96,20 @@ class User(object):
 
     @staticmethod
     def load_users_by_name(cursor, username):
-        query = """SELECT id, username, email, hashed_password FROM Users
-                   WHERE usernam='{}""".format(username)
-        users_by_name = []
+        query = """SELECT id, username, email, hashed_password
+                   FROM Users
+                   WHERE username='{}'""".format(username)
+        users = []
         cursor.execute(query)
-        rows = cursor.fechall()
+        rows = cursor.fetchall()
         for row in rows:
             loaded_user = User()
-            loaded_user.id = row[0]
+            loaded_user.__id = row[0]
             loaded_user.username = row[1]
             loaded_user.email = row[2]
             loaded_user.__hashed_password = row[3]
-            users_by_name.append(loaded_user)
-        return users_by_name
+            users.append(loaded_user)
+        return users
 
 
 if __name__ == "__main__":
@@ -115,7 +124,7 @@ if __name__ == "__main__":
     # user.set_password('test_password1', salt=None)
     # print(user.id, user.username, user.email, user.hashed_password)
 
-    # # testing save to database User 1
+    # testing save to database User 1
     # user.save_to_db(cursor)
 
     # testing class User 2
@@ -125,7 +134,17 @@ if __name__ == "__main__":
     # user.set_password('test_password2', salt=None)
     # print(user.id, user.username, user.email, user.hashed_password)
 
-    # # testing save to database User 2
+    # testing save to database User 2
+    # user.save_to_db(cursor)
+
+    # testing class User 3
+    # user = User()
+    # user.username = 'mariusz'
+    # user.email = 'mariusz.wojciechowski@wp.pl'
+    # user.set_password('test_password3', salt=None)
+    # print(user.id, user.username, user.email, user.hashed_password)
+
+    # testing save to database User 3
     # user.save_to_db(cursor)
 
     # testing load user by id
@@ -141,4 +160,11 @@ if __name__ == "__main__":
     # print(users[0].id, users[0].username, users[0].email,
     #       users[0].hashed_password)
 
-    disconnect_db(cursor, cnx)
+    # testing load users by name
+    # users = User.load_users_by_name(cursor, 'mariusz')
+    # print(users[0].id, users[0].username, users[0].email,
+    #       users[0].hashed_password)
+    # print(users[1].id, users[1].username, users[1].email,
+    #       users[1].hashed_password)
+
+    # disconnect_db(cursor, cnx)
