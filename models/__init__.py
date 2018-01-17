@@ -29,7 +29,7 @@ class User(object):
     def save_to_db(self, cursor):
         # saves new user or update
         if self.__id == -1:
-            query = """INSERT INTO Users(username, email, hashed_password)
+            query = """INSERT INTO User(username, email, hashed_password)
                        VALUES('{}', '{}', '{}')""".format(self.username,
                                                           self.email,
                                                           self.hashed_password)
@@ -38,20 +38,26 @@ class User(object):
             print("Successfully saved!")
             return True
         else:
-            query = """UPDATE User SET username='{}', emial='{}',
-                       hashed_password='{}',
-                       WHERE id='{}'""".format(self.username,
-                                               self.email,
-                                               self.hashed_password,
-                                               self.id)
+            query = """UPDATE User SET username='{}', email='{}',
+                       hashed_password='{}'
+                       WHERE id={}""".format(self.username,
+                                             self.email,
+                                             self.hashed_password,
+                                             self.id)
             cursor.execute(query)
             print("Successfully updated!")
             return True
 
+    def delete(self, cursor):
+        query = """DELETE From User WHERE id={}""".format(self.__id)
+        cursor.execute(query)
+        self.__id = -1
+        return True
+
     @staticmethod
     def load_user_by_id(cursor, id):
         query = """SELECT id, username, email, hashed_password
-                   FROM Users WHERE id={}""".format(id)
+                   FROM User WHERE id={}""".format(id)
         cursor.execute(query)
         row = cursor.fetchone()
         if row is not None:
@@ -67,7 +73,7 @@ class User(object):
     @staticmethod
     def load_user_by_email(cursor, email):
         query = """SELECT id, username, email, hashed_password
-                   FROM Users WHERE email='{}'""".format(email)
+                   FROM User WHERE email='{}'""".format(email)
         row = cursor.execute(query).fetchone()
         if row is not None:
             loaded_user = User()
@@ -81,7 +87,7 @@ class User(object):
 
     @staticmethod
     def load_all_users(cursor):
-        query = """SELECT id, username, email, hashed_password FROM Users"""
+        query = """SELECT id, username, email, hashed_password FROM User"""
         all_users = []
         cursor.execute(query)
         rows = cursor.fetchall()
@@ -97,8 +103,7 @@ class User(object):
     @staticmethod
     def load_users_by_name(cursor, username):
         query = """SELECT id, username, email, hashed_password
-                   FROM Users
-                   WHERE username='{}'""".format(username)
+                   FROM User WHERE username='{}'""".format(username)
         users = []
         cursor.execute(query)
         rows = cursor.fetchall()
@@ -167,4 +172,16 @@ if __name__ == "__main__":
     # print(users[1].id, users[1].username, users[1].email,
     #       users[1].hashed_password)
 
-    # disconnect_db(cursor, cnx)
+    # testing update user
+    # user = User.load_user_by_id(cursor, 3)
+    # print(user.id, user.username, user.email, user.hashed_password)
+    # user.username = 'maniek'
+    # print(user.username)
+    # user.save_to_db(cursor)
+
+    # testing delete user
+    # user = User.load_user_by_id(cursor, 3)
+    # print(user.id, user.username, user.email, user.hashed_password)
+    # user.delete(cursor)
+
+    disconnect_db(cursor, cnx)
