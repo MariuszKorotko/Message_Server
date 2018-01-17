@@ -75,10 +75,32 @@ class User(object):
     def load_all_users(cursor):
         query = """SELECT id, username, email, hashed_password FROM Users"""
         all_users = []
-        rows = cursor.execute(query).fetchall
+        cursor.execute(query)
+        rows = cursor.fetchall()
         for row in rows:
             loaded_user = User()
             loaded_user.__id = row[0]
+            loaded_user.username = row[1]
+            loaded_user.email = row[2]
+            loaded_user.__hashed_password = row[3]
+            all_users.append(loaded_user)
+        return all_users
+
+    @staticmethod
+    def load_users_by_name(cursor, username):
+        query = """SELECT id, username, email, hashed_password FROM Users
+                   WHERE usernam='{}""".format(username)
+        users_by_name = []
+        cursor.execute(query)
+        rows = cursor.fechall()
+        for row in rows:
+            loaded_user = User()
+            loaded_user.id = row[0]
+            loaded_user.username = row[1]
+            loaded_user.email = row[2]
+            loaded_user.__hashed_password = row[3]
+            users_by_name.append(loaded_user)
+        return users_by_name
 
 
 if __name__ == "__main__":
@@ -86,14 +108,24 @@ if __name__ == "__main__":
     cnx.autocommit = True
     cursor = cnx.cursor()
 
-    # testing class User
+    # testing class User 1
     # user = User()
     # user.username = 'mariusz'
     # user.email = 'mariusz.korotko@wp.pl'
     # user.set_password('test_password1', salt=None)
     # print(user.id, user.username, user.email, user.hashed_password)
 
-    # # testing save to database
+    # # testing save to database User 1
+    # user.save_to_db(cursor)
+
+    # testing class User 2
+    # user = User()
+    # user.username = 'henryk'
+    # user.email = 'henryk.sienkiewicz@wp.pl'
+    # user.set_password('test_password2', salt=None)
+    # print(user.id, user.username, user.email, user.hashed_password)
+
+    # # testing save to database User 2
     # user.save_to_db(cursor)
 
     # testing load user by id
@@ -104,4 +136,9 @@ if __name__ == "__main__":
     # user = User.load_user_by_email(cursor, 'mariusz.korotko@wp.pl')
     # print(user.id, user.username, user.email, user.hashed_password)
 
-    # disconnect_db(cursor, cnx)
+    # testing load all users
+    # users = User.load_all_users(cursor)
+    # print(users[0].id, users[0].username, users[0].email,
+    #       users[0].hashed_password)
+
+    disconnect_db(cursor, cnx)
